@@ -1,0 +1,23 @@
+{
+	backgroundTexture: "indoor1-background.jpg",
+	holdsTexture: "indoor1-holds-view.png",
+	holdsHandsMap: "indoor1-holds-hands.png",
+	holdsFeetMap: "indoor1-holds-feet.png",
+	holds: [
+		{
+			index: 0,
+			x: 100,
+			y: 100
+		},
+		{
+			index: 1,
+			x: 260,
+			y: 180
+		},
+		{
+			index: 0,
+			x: 320,
+			y: 280
+		}
+	]
+}
