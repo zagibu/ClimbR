@@ -6,8 +6,8 @@ public class World {
 
 	private String backgroundTexture;
 	private String holdsTexture;
-	private String holdsHandsMap;
-	private String holdsFeetMap;
+	private String handholdsMap;
+	private String footholdsMap;
 	private Array<Hold> holds;
 
 	public Array<Hold> getHolds() {
@@ -22,11 +22,11 @@ public class World {
 		return holdsTexture;
 	}
 
-	public String getHoldsHandsMap() {
-		return holdsHandsMap;
+	public String getHandholdsMap() {
+		return handholdsMap;
 	}
 
-	public String getHoldsFeetMap() {
-		return holdsFeetMap;
+	public String getFootholdsMap() {
+		return footholdsMap;
 	}
 }

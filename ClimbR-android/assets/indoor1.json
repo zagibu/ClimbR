@@ -1,8 +1,8 @@
 {
 	backgroundTexture: "indoor1-background.jpg",
 	holdsTexture: "indoor1-holds-view.png",
-	holdsHandsMap: "indoor1-holds-hands.png",
-	holdsFeetMap: "indoor1-holds-feet.png",
+	handholdsMap: "indoor1-holds-hands.png",
+	footholdsMap: "indoor1-holds-feet.png",
 	holds: [
 		{
 			index: 0,

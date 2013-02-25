@@ -9,33 +9,50 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.utils.Array;
 
 public class WorldRenderer {
 
 	private World world;
+	WorldSimulator simulator;
 	private boolean debug;
+	ShapeRenderer debugRenderer;
+	Box2DDebugRenderer box2dRenderer;
 	private SpriteBatch spriteBatch;
 	Sprite background;
 	Array<Sprite> holds = new Array<Sprite>();
+	Matrix4 projectionMatrix;
 
-	public WorldRenderer(World world, boolean debug) {
-		//Gdx.graphics.setContinuousRendering(false);
+	public WorldRenderer(World world, WorldSimulator simulator, boolean debug) {
+		// Gdx.graphics.setContinuousRendering(false);
 		this.world = world;
+		this.simulator = simulator;
 		this.debug = debug;
+		debugRenderer = new ShapeRenderer();
+		box2dRenderer = new Box2DDebugRenderer();
 		spriteBatch = new SpriteBatch();
+		projectionMatrix = spriteBatch.getProjectionMatrix().cpy();
+		projectionMatrix.scale(WorldSimulator.PPU, WorldSimulator.PPU,
+				WorldSimulator.PPU);
 		loadTextures();
 	}
 
 	private void loadTextures() {
-		Texture backgroundTexture = new Texture(Gdx.files.internal(world.getBackgroundTexture()));
+		Texture backgroundTexture = new Texture(Gdx.files.internal(world
+				.getBackgroundTexture()));
 		backgroundTexture.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
 		background = new Sprite(backgroundTexture, 0, 0, 512, 800);
-		Texture holdTexture = new Texture(Gdx.files.internal(world.getHoldsTexture()));
+		Texture holdTexture = new Texture(Gdx.files.internal(world
+				.getHoldsTexture()));
 		for (Hold hold : world.getHolds()) {
-			int x = hold.getIndex() * 64 % 512;
-			int y = hold.getIndex() * 64 / 512 * 64;
-			Sprite sprite = new Sprite(holdTexture, x, y, 64, 64);
+			int x = hold.getIndex() * Hold.SIZE % holdTexture.getWidth();
+			int y = hold.getIndex() * Hold.SIZE / holdTexture.getWidth()
+					* Hold.SIZE;
+			Sprite sprite = new Sprite(holdTexture, x, y, Hold.SIZE, Hold.SIZE);
 			sprite.setX(hold.getX());
 			sprite.setY(hold.getY());
 			holds.add(sprite);
@@ -43,13 +60,15 @@ public class WorldRenderer {
 	}
 
 	public void render() {
-		Gdx.gl.glClearColor(1f, 1f, 1f, 1);
+		Gdx.gl.glClearColor(0f, 0f, 0f, 1);
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
 		spriteBatch.begin();
-		background.draw(spriteBatch);
-		for (Sprite sprite : holds) {
-			sprite.draw(spriteBatch);
+		if (!debug) {
+			background.draw(spriteBatch);
+			for (Sprite sprite : holds) {
+				sprite.draw(spriteBatch);
+			}
 		}
 		spriteBatch.end();
 		if (debug)
@@ -57,13 +76,21 @@ public class WorldRenderer {
 	}
 
 	private void drawDebug() {
-		// TODO Auto-generated method stub
-
+		debugRenderer.begin(ShapeType.Rectangle);
+		debugRenderer.setColor(1f, 0f, 1f, 1f);
+		debugRenderer.rect(background.getX(), background.getY(),
+				background.getWidth(), background.getHeight());
+		for (Sprite hold : holds) {
+			debugRenderer.rect(hold.getX(), hold.getY(), hold.getWidth(),
+					hold.getHeight());
+		}
+		debugRenderer.end();
+		box2dRenderer.render(simulator.getSimulation(), projectionMatrix);
 	}
 
 	public void setSize(int width, int height) {
-		//cam.setToOrtho(false, width, height);
-		//spriteBatch.setProjectionMatrix(cam.combined);
+		// cam.setToOrtho(false, width, height);
+		// spriteBatch.setProjectionMatrix(cam.combined);
 	}
 
 }

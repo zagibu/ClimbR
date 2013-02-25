@@ -2,6 +2,8 @@ package net.node23.climbr.model;
 
 public class Hold {
 
+	public static int SIZE = 64;
+	
 	private int index;
 	private int x;
 	private int y;
@@ -28,5 +30,9 @@ public class Hold {
 
 	public void setY(int y) {
 		this.y = y;
+	}
+	
+	public enum Type {
+		HANDS, FEET
 	}
 }
