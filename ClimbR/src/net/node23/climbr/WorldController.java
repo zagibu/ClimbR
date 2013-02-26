@@ -6,17 +6,25 @@ import net.node23.climbr.model.World;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.joints.MouseJoint;
+import com.badlogic.gdx.physics.box2d.joints.MouseJointDef;
 
 public class WorldController implements InputProcessor {
 
 	private World world;
+	private WorldSimulator simulator;
 	private Pixmap handholds;
 	private Pixmap footholds;
 	private int height;
 	private int width;
+	private MouseJoint mouseJoint = null;
+	private Vector2 target;
 	
-	public WorldController(World world) {
+	public WorldController(World world, WorldSimulator simulator) {
 		this.world = world;
+		this.simulator = simulator;
 		handholds = new Pixmap(Gdx.files.internal(world.getHandholdsMap()));
 		footholds = new Pixmap(Gdx.files.internal(world.getFootholdsMap()));
 		Gdx.input.setInputProcessor(this);
@@ -74,25 +82,50 @@ public class WorldController implements InputProcessor {
 
 	@Override
 	public boolean keyTyped(char character) {
-		// TODO Auto-generated method stub
+		//simulator.getTorso().setActive(false);
+		simulator.getTorso().setTransform(1.5f, 1.3f, 0f);
 		return false;
 	}
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-		System.out.println("touchDown");
-		return false;
-	}
+		screenY = height - screenY;
+		for (Body body : simulator.getBodies()) {
+			float dX = Math.abs(screenX / (float) WorldSimulator.PPU - body.getPosition().x);
+			float dY = Math.abs(screenY / (float) WorldSimulator.PPU - body.getPosition().y);
+			if (dX * dX + dY * dY < body.getFixtureList().get(0).getShape().getRadius()) {
+				MouseJointDef def = new MouseJointDef();
+				def.bodyA = simulator.getGround();
+				def.bodyB = body;
+				def.collideConnected = true;
+				def.target.set(dX, dY);
+				def.maxForce = 1000.0f * body.getMass();
 
-	@Override
-	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		System.out.println("touchUp");
+				mouseJoint  = (MouseJoint) simulator.getSimulation().createJoint(def);
+				body.setAwake(true);
+			}
+		}
 		return false;
 	}
 
 	@Override
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
-		System.out.println("touchDragged");
+		screenY = height - screenY;
+		if (mouseJoint != null) {
+			if (target == null) {
+				target = new Vector2();
+			}
+			mouseJoint.setTarget(target.set(screenX / (float) WorldSimulator.PPU, screenY / (float) WorldSimulator.PPU));
+		}
+		return false;
+	}
+
+	@Override
+	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+		if (mouseJoint != null) {
+			simulator.getSimulation().destroyJoint(mouseJoint);
+			mouseJoint = null;
+		}
 		return false;
 	}
 

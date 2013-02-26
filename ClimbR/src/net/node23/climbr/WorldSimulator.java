@@ -15,6 +15,8 @@ public class WorldSimulator {
 	public static int PPU = 160;
 	private World simulation = new World(new Vector2(0f, -9.82f), true);
 	private Array<Body> bodies = new Array<Body>();
+	private Body ground;
+	private Body torso;
 
 	public WorldSimulator() {
 		float centerX = 3 / 2f;
@@ -23,12 +25,11 @@ public class WorldSimulator {
 		// Ground
 		BodyDef groundBodyDef = new BodyDef();
 		groundBodyDef.position.set(new Vector2(centerX, -0.1f));
-		//groundBodyDef.angle = 0.04f;
+		groundBodyDef.angle = 0.045f;
 		Body ground = simulation.createBody(groundBodyDef);
 		PolygonShape groundBox = new PolygonShape();
 		groundBox.setAsBox(2f, 0.1f);
 		ground.createFixture(groundBox, 0.0f);
-		bodies.add(ground);
 
 		// Torso
 		BodyDef bodyDef = new BodyDef();
@@ -72,7 +73,7 @@ public class WorldSimulator {
 		bodyDef.position.set(centerX - 0.2f, 0.95f);
 		Body llArm = simulation.createBody(bodyDef);
 		shape = new PolygonShape();
-		shape.setAsBox(0.05f, 0.175f);
+		shape.setAsBox(0.05f, 0.15f);
 		fixtureDef = new FixtureDef();
 		fixtureDef.shape = shape;
 		fixtureDef.density = 1.0f;
@@ -86,6 +87,28 @@ public class WorldSimulator {
 		jointDev.enableLimit = true;
 		jointDev.upperAngle = (float) (0f * Math.PI);
 		jointDev.lowerAngle = (float) (-0.85f * Math.PI);
+		simulation.createJoint(jointDev);
+
+		// Left hand
+		bodyDef = new BodyDef();
+		bodyDef.type = BodyType.DynamicBody;
+		bodyDef.position.set(centerX - 0.2f, 0.75f);
+		Body lHand = simulation.createBody(bodyDef);
+		shape = new PolygonShape();
+		shape.setAsBox(0.05f, 0.05f);
+		fixtureDef = new FixtureDef();
+		fixtureDef.shape = shape;
+		fixtureDef.density = 1.0f;
+		fixtureDef.friction = 0.5f;
+		fixtureDef.restitution = 0.2f;
+		lHand.createFixture(fixtureDef);
+
+		jointDev = new RevoluteJointDef();
+		jointDev.initialize(llArm, lHand, new Vector2(centerX - 0.2f, 0.8f));
+		jointDev.collideConnected = false;
+		jointDev.enableLimit = true;
+		jointDev.upperAngle = (float) (0.05f * Math.PI);
+		jointDev.lowerAngle = (float) (-0.05f * Math.PI);
 		simulation.createJoint(jointDev);
 
 		// Right upper arm
@@ -116,7 +139,7 @@ public class WorldSimulator {
 		bodyDef.position.set(centerX + 0.2f, 0.95f);
 		Body rlArm = simulation.createBody(bodyDef);
 		shape = new PolygonShape();
-		shape.setAsBox(0.05f, 0.175f);
+		shape.setAsBox(0.05f, 0.15f);
 		fixtureDef = new FixtureDef();
 		fixtureDef.shape = shape;
 		fixtureDef.density = 1.0f;
@@ -128,8 +151,30 @@ public class WorldSimulator {
 		jointDev.initialize(ruArm, rlArm, new Vector2(centerX + 0.2f, 1.10f));
 		jointDev.collideConnected = false;
 		jointDev.enableLimit = true;
-		jointDev.upperAngle = (float) (0.85f * Math.PI);
-		jointDev.lowerAngle = (float) (0f * Math.PI);
+		jointDev.upperAngle = (float) (0f * Math.PI);
+		jointDev.lowerAngle = (float) (-0.85f * Math.PI);
+		simulation.createJoint(jointDev);
+
+		// Right hand
+		bodyDef = new BodyDef();
+		bodyDef.type = BodyType.DynamicBody;
+		bodyDef.position.set(centerX + 0.2f, 0.75f);
+		Body rHand = simulation.createBody(bodyDef);
+		shape = new PolygonShape();
+		shape.setAsBox(0.05f, 0.05f);
+		fixtureDef = new FixtureDef();
+		fixtureDef.shape = shape;
+		fixtureDef.density = 1.0f;
+		fixtureDef.friction = 0.5f;
+		fixtureDef.restitution = 0.2f;
+		rHand.createFixture(fixtureDef);
+
+		jointDev = new RevoluteJointDef();
+		jointDev.initialize(rlArm, rHand, new Vector2(centerX + 0.2f, 0.8f));
+		jointDev.collideConnected = false;
+		jointDev.enableLimit = true;
+		jointDev.upperAngle = (float) (0.05f * Math.PI);
+		jointDev.lowerAngle = (float) (-0.05f * Math.PI);
 		simulation.createJoint(jointDev);
 
 		// Left upper leg
@@ -179,6 +224,31 @@ public class WorldSimulator {
 		jointDev.upperAngle = (float) (0.85f * Math.PI);
 		simulation.createJoint(jointDev);
 
+		// Left foot
+		bodyDef = new BodyDef();
+		bodyDef.type = BodyType.DynamicBody;
+		bodyDef.position.set(centerX - 0.1f, 0.05f);
+		Body lFoot = simulation.createBody(bodyDef);
+		shape = new PolygonShape();
+		shape.setAsBox(0.07f, 0.05f);
+		fixtureDef = new FixtureDef();
+		fixtureDef.shape = shape;
+		fixtureDef.density = 1.0f;
+		fixtureDef.friction = 0.5f;
+		fixtureDef.restitution = 0.2f;
+		lFoot.createFixture(fixtureDef);
+
+		jointDev = new RevoluteJointDef();
+		jointDev.initialize(llLeg, lFoot, new Vector2(centerX - 0.1f, 0.1f));
+		jointDev.collideConnected = false;
+		jointDev.enableLimit = true;
+		jointDev.lowerAngle = (float) (-0.05f * Math.PI);
+		jointDev.upperAngle = (float) (0.05f * Math.PI);
+		jointDev.enableMotor = true;
+		jointDev.motorSpeed = 0f;
+		jointDev.maxMotorTorque = 1f;
+		simulation.createJoint(jointDev);
+
 		// Right upper leg
 		bodyDef = new BodyDef();
 		bodyDef.type = BodyType.DynamicBody;
@@ -226,7 +296,37 @@ public class WorldSimulator {
 		jointDev.upperAngle = (float) (0f * Math.PI);
 		simulation.createJoint(jointDev);
 
-		bodies.add(torso);
+		// Right foot
+		bodyDef = new BodyDef();
+		bodyDef.type = BodyType.DynamicBody;
+		bodyDef.position.set(centerX + 0.1f, 0.05f);
+		Body rFoot = simulation.createBody(bodyDef);
+		shape = new PolygonShape();
+		shape.setAsBox(0.07f, 0.05f);
+		fixtureDef = new FixtureDef();
+		fixtureDef.shape = shape;
+		fixtureDef.density = 1.0f;
+		fixtureDef.friction = 0.5f;
+		fixtureDef.restitution = 0.2f;
+		rFoot.createFixture(fixtureDef);
+
+		jointDev = new RevoluteJointDef();
+		jointDev.initialize(rlLeg, rFoot, new Vector2(centerX + 0.1f, 0.1f));
+		jointDev.collideConnected = false;
+		jointDev.enableLimit = true;
+		jointDev.lowerAngle = (float) (-0.05f * Math.PI);
+		jointDev.upperAngle = (float) (0.05f * Math.PI);
+		jointDev.enableMotor = true;
+		jointDev.motorSpeed = 0f;
+		jointDev.maxMotorTorque = 1f;
+		simulation.createJoint(jointDev);
+
+		this.ground = ground;
+		this.torso = torso;
+		bodies.add(lHand);
+		bodies.add(rHand);
+		bodies.add(lFoot);
+		bodies.add(rFoot);
 	}
 
 	public void update() {
@@ -239,5 +339,13 @@ public class WorldSimulator {
 
 	public Array<Body> getBodies() {
 		return bodies;
+	}
+	
+	public Body getGround() {
+		return ground;
+	}
+
+	public Body getTorso() {
+		return torso;
 	}
 }

@@ -36,7 +36,7 @@ public class GameScreen implements Screen {
 		simulator = new WorldSimulator();
 		renderer = new WorldRenderer(world, simulator, true);
 		renderer.setSize(480, 800);
-		controller = new WorldController(world);
+		controller = new WorldController(world, simulator);
 		controller.setSize(480, 800);
 	}
 
