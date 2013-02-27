@@ -1,5 +1,6 @@
 package net.node23.climbr;
 
+import physics.WorldSimulator;
 import net.node23.climbr.model.Hold;
 import net.node23.climbr.model.World;
 
@@ -7,6 +8,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.utils.TimeUtils;
 
 public class WorldController implements InputProcessor {
 
@@ -17,6 +19,7 @@ public class WorldController implements InputProcessor {
 	private int height;
 	private int width;
 	Body touchedBody;
+	private long startTime;
 
 	public WorldController(World world, WorldSimulator simulator) {
 		this.world = world;
@@ -68,13 +71,11 @@ public class WorldController implements InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean keyUp(int keycode) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -96,7 +97,7 @@ public class WorldController implements InputProcessor {
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		screenY = height - screenY;
 
-		for (Body body : simulator.getBodies()) {
+		for (Body body : simulator.getPlayer().getTouchableBodies()) {
 			float dX = Math.abs(screenX / (float) WorldSimulator.PPU
 					- body.getPosition().x);
 			float dY = Math.abs(screenY / (float) WorldSimulator.PPU
@@ -106,6 +107,15 @@ public class WorldController implements InputProcessor {
 				simulator.touchBody(body, screenX, screenY);
 			}
 		}
+//		float dX = Math.abs(screenX / (float) WorldSimulator.PPU
+//				- simulator.getPlayer().getTorso().getPosition().x);
+//		float dY = Math.abs(screenY / (float) WorldSimulator.PPU
+//				- simulator.getPlayer().getTorso().getPosition().y);
+//		if (dX * dX + dY * dY < simulator.getPlayer().getTorso().getFixtureList().get(0).getShape()
+//				.getRadius() / 2) {
+//			simulator.getPlayer().toggleClimbing();
+//		}
+		
 
 		return false;
 	}
@@ -115,45 +125,30 @@ public class WorldController implements InputProcessor {
 		screenY = height - screenY;
 
 		simulator.updateTouch(screenX, screenY);
-		// if (touchedBody != null) {
-		// touchedBody.setLinearVelocity(0, 0);
-		// touchedBody.applyForceToCenter(
-		// (screenX / (float) WorldSimulator.PPU - touchedBody
-		// .getPosition().x) * 2, (screenY
-		// / (float) WorldSimulator.PPU - touchedBody
-		// .getPosition().y) * 2);
-		// }
-		//
 		return false;
 	}
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-
 		if (button == 0) {
 			simulator.untouchBody();
-		} else {
+			if (TimeUtils.millis() - startTime < 500) {
+				simulator.removeAllFixations();
+			}
+			startTime = TimeUtils.millis();
+		} else if (button == 1) {
 			simulator.removeFixation();
 		}
-		// if (touchedBody != null) {
-		// touchedBody.setLinearVelocity(0, 0);
-		// if (button == 0) {
-		// simulator.createBodyFixation(touchedBody);
-		// }
-		// touchedBody = null;
-		// }
 		return false;
 	}
 
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean scrolled(int amount) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 }

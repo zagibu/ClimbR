@@ -1,5 +1,6 @@
 package net.node23.climbr;
 
+import physics.WorldSimulator;
 import net.node23.climbr.model.Hold;
 import net.node23.climbr.model.World;
 
