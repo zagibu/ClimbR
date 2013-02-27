@@ -6,10 +6,7 @@ import net.node23.climbr.model.World;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.joints.MouseJoint;
-import com.badlogic.gdx.physics.box2d.joints.MouseJointDef;
 
 public class WorldController implements InputProcessor {
 
@@ -19,9 +16,8 @@ public class WorldController implements InputProcessor {
 	private Pixmap footholds;
 	private int height;
 	private int width;
-	private MouseJoint mouseJoint = null;
-	private Vector2 target;
-	
+	Body touchedBody;
+
 	public WorldController(World world, WorldSimulator simulator) {
 		this.world = world;
 		this.simulator = simulator;
@@ -41,7 +37,8 @@ public class WorldController implements InputProcessor {
 	public int getHoldQuality(int x, int y, Hold.Type type) {
 		y = height - y;
 		for (Hold hold : world.getHolds()) {
-			if (hold.getX() <= x && x <= hold.getX() + Hold.SIZE && hold.getY() <= y && y <= hold.getY() + Hold.SIZE) {
+			if (hold.getX() <= x && x <= hold.getX() + Hold.SIZE
+					&& hold.getY() <= y && y <= hold.getY() + Hold.SIZE) {
 				return getHoldQuality(hold, x, y, type);
 			}
 		}
@@ -53,7 +50,8 @@ public class WorldController implements InputProcessor {
 		int dY = y - hold.getY();
 		// FIXME: Assuming handholds and footholds pixmaps are same size
 		int pX = hold.getIndex() * Hold.SIZE % handholds.getWidth() + dX;
-		int pY = hold.getIndex() * Hold.SIZE / handholds.getWidth() * Hold.SIZE + Hold.SIZE - dY;
+		int pY = hold.getIndex() * Hold.SIZE / handholds.getWidth() * Hold.SIZE
+				+ Hold.SIZE - dY;
 
 		if (type == Hold.Type.HANDS) {
 			return handholds.getPixel(pX, pY);
@@ -82,50 +80,68 @@ public class WorldController implements InputProcessor {
 
 	@Override
 	public boolean keyTyped(char character) {
-		//simulator.getTorso().setActive(false);
-		simulator.getTorso().setTransform(1.5f, 1.3f, 0f);
+		if (character == '+') {
+			simulator.increaseGravity();
+		}
+		if (character == '-') {
+			simulator.decreaseGravity();
+		}
+		if (character == 'g') {
+			simulator.toggleGravity();
+		}
 		return false;
 	}
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		screenY = height - screenY;
-		for (Body body : simulator.getBodies()) {
-			float dX = Math.abs(screenX / (float) WorldSimulator.PPU - body.getPosition().x);
-			float dY = Math.abs(screenY / (float) WorldSimulator.PPU - body.getPosition().y);
-			if (dX * dX + dY * dY < body.getFixtureList().get(0).getShape().getRadius()) {
-				MouseJointDef def = new MouseJointDef();
-				def.bodyA = simulator.getGround();
-				def.bodyB = body;
-				def.collideConnected = true;
-				def.target.set(dX, dY);
-				def.maxForce = 1000.0f * body.getMass();
 
-				mouseJoint  = (MouseJoint) simulator.getSimulation().createJoint(def);
-				body.setAwake(true);
+		for (Body body : simulator.getBodies()) {
+			float dX = Math.abs(screenX / (float) WorldSimulator.PPU
+					- body.getPosition().x);
+			float dY = Math.abs(screenY / (float) WorldSimulator.PPU
+					- body.getPosition().y);
+			if (dX * dX + dY * dY < body.getFixtureList().get(0).getShape()
+					.getRadius()) {
+				simulator.touchBody(body, screenX, screenY);
 			}
 		}
+
 		return false;
 	}
 
 	@Override
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
 		screenY = height - screenY;
-		if (mouseJoint != null) {
-			if (target == null) {
-				target = new Vector2();
-			}
-			mouseJoint.setTarget(target.set(screenX / (float) WorldSimulator.PPU, screenY / (float) WorldSimulator.PPU));
-		}
+
+		simulator.updateTouch(screenX, screenY);
+		// if (touchedBody != null) {
+		// touchedBody.setLinearVelocity(0, 0);
+		// touchedBody.applyForceToCenter(
+		// (screenX / (float) WorldSimulator.PPU - touchedBody
+		// .getPosition().x) * 2, (screenY
+		// / (float) WorldSimulator.PPU - touchedBody
+		// .getPosition().y) * 2);
+		// }
+		//
 		return false;
 	}
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		if (mouseJoint != null) {
-			simulator.getSimulation().destroyJoint(mouseJoint);
-			mouseJoint = null;
+
+		if (button == 0) {
+			simulator.untouchBody();
+		} else {
+			simulator.removeFixation();
 		}
+		// if (touchedBody != null) {
+		// touchedBody.setLinearVelocity(0, 0);
+		// if (button == 0) {
+		// simulator.createBodyFixation(touchedBody);
+		// }
+		// touchedBody = null;
+		// }
 		return false;
 	}
 
