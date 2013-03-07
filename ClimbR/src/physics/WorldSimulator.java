@@ -16,13 +16,14 @@ public class WorldSimulator {
 	public static int PPU = 160;
 	private World simulation;
 	private Body ground;
-	private RevoluteJointDef fixationDef;
+	private RevoluteJointDef jointDef;
 	Vector2 gravity = new Vector2(0, -9.82f);
 	Vector2 touchDirection = new Vector2();
 	Vector2 velocity = new Vector2();
 	private Body touchedBody;
 	private float scale;
 	private PhysicalPlayer player;
+	private int numberOfHolds = 0;
 
 	public WorldSimulator() {
 		simulation = new World(gravity, true);
@@ -53,24 +54,39 @@ public class WorldSimulator {
 			if (scale < 3) {
 				scale = 3f;
 			}
+			if (touchedBody == player.getTorso()) {
+				if (getNumberOfHolds() < 2) {
+					scale = 0.1f;
+				}
+			}
+			touchedBody.setLinearVelocity(0, 0);
 			velocity = touchDirection.cpy().sub(touchedBody.getPosition());
-			touchedBody.setLinearVelocity(velocity.nor().mul(scale));
+			if (velocity.len() > 0.04f) {
+				touchedBody.setLinearVelocity(velocity.nor().mul(scale));
+			}
 		}
+		player.checkFeetAngle();
 		simulation.step(1 / 60f, 6, 2);
 	}
 
-	public void touchBody(Body body, int screenX, int screenY) {
+	public void touchBody(Body body, int screenX, int screenY, int button) {
 		touchedBody = body;
 		removeFixation(touchedBody);
-		player.startClimbing(touchedBody);
+		player.loosenLimb(body);
+		if (button == 0) {
+			player.disableGravity(body);
+		}
 		updateTouch(screenX, screenY);
 	}
 
 	public void untouchBody() {
 		if (touchedBody != null) {
 			touchedBody.setLinearVelocity(0, 0);
-			player.stopClimbing(touchedBody);
-			createFixation(touchedBody);
+			if (touchedBody != player.getTorso()) {
+				createFixation(touchedBody);
+				player.tightenLimb(touchedBody);
+			}
+			player.enableGravity(touchedBody);
 			touchedBody = null;
 		}
 	}
@@ -83,7 +99,7 @@ public class WorldSimulator {
 
 	public void removeFixation() {
 		if (touchedBody != null) {
-			player.stopClimbing(touchedBody);
+			// player.stopClimbing(touchedBody);
 			touchedBody.setLinearVelocity(0, 0);
 			removeFixation(touchedBody);
 			touchedBody = null;
@@ -95,6 +111,8 @@ public class WorldSimulator {
 		if (body.getUserData() != null) {
 			simulation.destroyJoint((Joint) body.getUserData());
 			body.setUserData(null);
+			numberOfHolds--;
+			System.out.println(numberOfHolds);
 		}
 	}
 
@@ -105,12 +123,16 @@ public class WorldSimulator {
 	}
 
 	public void createFixation(Body body) {
-		fixationDef = new RevoluteJointDef();
-		fixationDef.initialize(body, ground, body.getPosition());
-		fixationDef.enableLimit = true;
-		fixationDef.upperAngle = (float) (0.5f * Math.PI);
-		fixationDef.lowerAngle = (float) (-0.5f * Math.PI);
-		body.setUserData(simulation.createJoint(fixationDef));
+		jointDef = new RevoluteJointDef();
+		jointDef.initialize(body, ground, body.getPosition());
+		jointDef.enableLimit = true;
+		jointDef.upperAngle = (float) (0.5f * Math.PI);
+		jointDef.lowerAngle = (float) (-0.5f * Math.PI);
+		jointDef.enableMotor = true;
+		jointDef.motorSpeed = 0;
+		jointDef.maxMotorTorque = 2f;
+		body.setUserData(simulation.createJoint(jointDef));
+		numberOfHolds++;
 	}
 
 	public void decreaseGravity() {
@@ -157,4 +179,8 @@ public class WorldSimulator {
 	public PhysicalPlayer getPlayer() {
 		return player;
 	}
+
+	private int getNumberOfHolds() {
+		return numberOfHolds;
 	}
+}

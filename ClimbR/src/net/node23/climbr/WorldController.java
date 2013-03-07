@@ -104,19 +104,9 @@ public class WorldController implements InputProcessor {
 					- body.getPosition().y);
 			if (dX * dX + dY * dY < body.getFixtureList().get(0).getShape()
 					.getRadius()) {
-				simulator.touchBody(body, screenX, screenY);
+				simulator.touchBody(body, screenX, screenY, button);
 			}
 		}
-//		float dX = Math.abs(screenX / (float) WorldSimulator.PPU
-//				- simulator.getPlayer().getTorso().getPosition().x);
-//		float dY = Math.abs(screenY / (float) WorldSimulator.PPU
-//				- simulator.getPlayer().getTorso().getPosition().y);
-//		if (dX * dX + dY * dY < simulator.getPlayer().getTorso().getFixtureList().get(0).getShape()
-//				.getRadius() / 2) {
-//			simulator.getPlayer().toggleClimbing();
-//		}
-		
-
 		return false;
 	}
 

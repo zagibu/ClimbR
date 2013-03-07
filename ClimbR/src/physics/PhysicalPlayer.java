@@ -9,10 +9,13 @@ import com.badlogic.gdx.physics.box2d.Joint;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJoint;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
+import com.badlogic.gdx.physics.box2d.joints.WeldJointDef;
 
 public class PhysicalPlayer {
+	private static final float LOOSE_TORQUE = 0.2f;
+	private static final float TIGHT_TORQUE = 2f;
 	WorldSimulator simulator;
-	Body[] touchableBodies = new Body[4];
+	Body[] touchableBodies = new Body[5];
 	Body torso;
 	Body luArm;
 	Body llArm;
@@ -79,6 +82,9 @@ public class PhysicalPlayer {
 		jointDef.enableLimit = true;
 		jointDef.upperAngle = (float) (-0.05f * Math.PI);
 		jointDef.lowerAngle = (float) (-0.9f * Math.PI);
+		jointDef.enableMotor = true;
+		jointDef.motorSpeed = 0;
+		jointDef.maxMotorTorque = 2f;
 		lShoulder = simulator.getSimulation().createJoint(jointDef);
 
 		// Left lower arm
@@ -102,8 +108,11 @@ public class PhysicalPlayer {
 				WorldSimulator.WIDTH / 2f - 0.2f, 1.10f * scale));
 		jointDef.collideConnected = false;
 		jointDef.enableLimit = true;
-		jointDef.upperAngle = (float) (0f * Math.PI);
+		jointDef.upperAngle = (float) (-0.05f * Math.PI);
 		jointDef.lowerAngle = (float) (-0.85f * Math.PI);
+		jointDef.enableMotor = true;
+		jointDef.motorSpeed = 0;
+		jointDef.maxMotorTorque = 2f;
 		lElbow = simulator.getSimulation().createJoint(jointDef);
 
 		// Left hand
@@ -122,14 +131,17 @@ public class PhysicalPlayer {
 		fixtureDef.filter.maskBits = 0x5;
 		lHand.createFixture(fixtureDef);
 
-		jointDef = new RevoluteJointDef();
-		jointDef.initialize(llArm, lHand, new Vector2(
+		WeldJointDef wJointDef = new WeldJointDef();
+		wJointDef.initialize(llArm, lHand, new Vector2(
 				WorldSimulator.WIDTH / 2f - 0.2f, 0.8f * scale));
-		jointDef.collideConnected = false;
-		jointDef.enableLimit = true;
-		jointDef.upperAngle = (float) (0.05f * Math.PI);
-		jointDef.lowerAngle = (float) (-0.05f * Math.PI);
-		simulator.getSimulation().createJoint(jointDef);
+		wJointDef.collideConnected = false;
+//		jointDef.enableLimit = true;
+//		jointDef.upperAngle = (float) (0.05f * Math.PI);
+//		jointDef.lowerAngle = (float) (-0.05f * Math.PI);
+//		jointDef.enableMotor = true;
+//		jointDef.motorSpeed = 0;
+//		jointDef.maxMotorTorque = 2f;
+		simulator.getSimulation().createJoint(wJointDef);
 
 		// Right upper arm
 		bodyDef = new BodyDef();
@@ -154,6 +166,9 @@ public class PhysicalPlayer {
 		jointDef.enableLimit = true;
 		jointDef.upperAngle = (float) (0.9f * Math.PI);
 		jointDef.lowerAngle = (float) (0.05f * Math.PI);
+		jointDef.enableMotor = true;
+		jointDef.motorSpeed = 0;
+		jointDef.maxMotorTorque = 2f;
 		rShoulder = simulator.getSimulation().createJoint(jointDef);
 
 		// Right lower arm
@@ -178,7 +193,10 @@ public class PhysicalPlayer {
 		jointDef.collideConnected = false;
 		jointDef.enableLimit = true;
 		jointDef.upperAngle = (float) (0.85f * Math.PI);
-		jointDef.lowerAngle = (float) (0f * Math.PI);
+		jointDef.lowerAngle = (float) (0.05f * Math.PI);
+		jointDef.enableMotor = true;
+		jointDef.motorSpeed = 0;
+		jointDef.maxMotorTorque = 2f;
 		rElbow = simulator.getSimulation().createJoint(jointDef);
 
 		// Right hand
@@ -197,14 +215,17 @@ public class PhysicalPlayer {
 		fixtureDef.filter.maskBits = 0x5;
 		rHand.createFixture(fixtureDef);
 
-		jointDef = new RevoluteJointDef();
-		jointDef.initialize(rlArm, rHand, new Vector2(
+		wJointDef = new WeldJointDef();
+		wJointDef.initialize(rlArm, rHand, new Vector2(
 				WorldSimulator.WIDTH / 2f + 0.2f, 0.8f * scale));
-		jointDef.collideConnected = false;
-		jointDef.enableLimit = true;
-		jointDef.upperAngle = (float) (0.05f * Math.PI);
-		jointDef.lowerAngle = (float) (-0.05f * Math.PI);
-		simulator.getSimulation().createJoint(jointDef);
+		wJointDef.collideConnected = false;
+//		jointDef.enableLimit = true;
+//		jointDef.upperAngle = (float) (0.05f * Math.PI);
+//		jointDef.lowerAngle = (float) (-0.05f * Math.PI);
+//		jointDef.enableMotor = true;
+//		jointDef.motorSpeed = 0;
+//		jointDef.maxMotorTorque = 2f;
+		simulator.getSimulation().createJoint(wJointDef);
 
 		// Left upper leg
 		bodyDef = new BodyDef();
@@ -227,8 +248,11 @@ public class PhysicalPlayer {
 				WorldSimulator.WIDTH / 2f - 0.1f, 1f * scale));
 		jointDef.collideConnected = false;
 		jointDef.enableLimit = true;
-		jointDef.upperAngle = (float) (0f * Math.PI);
+		jointDef.upperAngle = (float) (-0.05f * Math.PI);
 		jointDef.lowerAngle = (float) (-0.75f * Math.PI);
+		jointDef.enableMotor = true;
+		jointDef.motorSpeed = 0;
+		jointDef.maxMotorTorque = 2f;
 		lHip = simulator.getSimulation().createJoint(jointDef);
 
 		// Left lower leg
@@ -252,8 +276,11 @@ public class PhysicalPlayer {
 				WorldSimulator.WIDTH / 2f - 0.1f, 0.5f * scale));
 		jointDef.collideConnected = false;
 		jointDef.enableLimit = true;
-		jointDef.lowerAngle = (float) (0f * Math.PI);
+		jointDef.lowerAngle = (float) (0.05f * Math.PI);
 		jointDef.upperAngle = (float) (0.85f * Math.PI);
+		jointDef.enableMotor = true;
+		jointDef.motorSpeed = 0;
+		jointDef.maxMotorTorque = 2f;
 		lKnee = simulator.getSimulation().createJoint(jointDef);
 
 		// Left foot
@@ -272,16 +299,19 @@ public class PhysicalPlayer {
 		fixtureDef.filter.maskBits = 0x9;
 		lFoot.createFixture(fixtureDef);
 
-		jointDef = new RevoluteJointDef();
-		jointDef.initialize(llLeg, lFoot, new Vector2(
+		wJointDef = new WeldJointDef();
+		wJointDef.initialize(llLeg, lFoot, new Vector2(
 				WorldSimulator.WIDTH / 2f - 0.1f, 0.1f * scale));
-		jointDef.collideConnected = false;
-		jointDef.enableLimit = true;
-		jointDef.lowerAngle = (float) (-0.05f * Math.PI);
-		jointDef.upperAngle = (float) (0.05f * Math.PI);
-		simulator.getSimulation().createJoint(jointDef);
+		wJointDef.collideConnected = false;
+//		jointDef.enableLimit = true;
+//		jointDef.lowerAngle = (float) (-0.05f * Math.PI);
+//		jointDef.upperAngle = (float) (0.05f * Math.PI);
+//		jointDef.enableMotor = true;
+//		jointDef.motorSpeed = 0;
+//		jointDef.maxMotorTorque = 2f;
+		simulator.getSimulation().createJoint(wJointDef);
 
-		simulator.createFixation(lFoot);
+//		simulator.createFixation(lFoot);
 
 		// Right upper leg
 		bodyDef = new BodyDef();
@@ -305,7 +335,10 @@ public class PhysicalPlayer {
 		jointDef.collideConnected = false;
 		jointDef.enableLimit = true;
 		jointDef.upperAngle = (float) (0.75f * Math.PI);
-		jointDef.lowerAngle = (float) (0f * Math.PI);
+		jointDef.lowerAngle = (float) (0.05f * Math.PI);
+		jointDef.enableMotor = true;
+		jointDef.motorSpeed = 0;
+		jointDef.maxMotorTorque = 2f;
 		rHip = simulator.getSimulation().createJoint(jointDef);
 
 		// Right lower leg
@@ -330,7 +363,10 @@ public class PhysicalPlayer {
 		jointDef.collideConnected = false;
 		jointDef.enableLimit = true;
 		jointDef.lowerAngle = (float) (-0.85f * Math.PI);
-		jointDef.upperAngle = (float) (0f * Math.PI);
+		jointDef.upperAngle = (float) (-0.05f * Math.PI);
+		jointDef.enableMotor = true;
+		jointDef.motorSpeed = 0;
+		jointDef.maxMotorTorque = 2f;
 		rKnee = simulator.getSimulation().createJoint(jointDef);
 
 		// Right foot
@@ -349,21 +385,81 @@ public class PhysicalPlayer {
 		fixtureDef.filter.maskBits = 0x9;
 		rFoot.createFixture(fixtureDef);
 
-		jointDef = new RevoluteJointDef();
-		jointDef.initialize(rlLeg, rFoot, new Vector2(
+		wJointDef = new WeldJointDef();
+		wJointDef.initialize(rlLeg, rFoot, new Vector2(
 				WorldSimulator.WIDTH / 2f + 0.1f, 0.1f * scale));
-		jointDef.collideConnected = false;
-		jointDef.enableLimit = true;
-		jointDef.lowerAngle = (float) (-0.05f * Math.PI);
-		jointDef.upperAngle = (float) (0.05f * Math.PI);
-		simulator.getSimulation().createJoint(jointDef);
+		wJointDef.collideConnected = false;
+//		jointDef.enableLimit = true;
+//		jointDef.lowerAngle = (float) (-0.05f * Math.PI);
+//		jointDef.upperAngle = (float) (0.05f * Math.PI);
+//		jointDef.enableMotor = true;
+//		jointDef.motorSpeed = 0;
+//		jointDef.maxMotorTorque = 2f;
+		simulator.getSimulation().createJoint(wJointDef);
 
-		simulator.createFixation(rFoot);
+//		simulator.createFixation(rFoot);
 
 		touchableBodies[0] = lHand;
 		touchableBodies[1] = rHand;
 		touchableBodies[2] = lFoot;
 		touchableBodies[3] = rFoot;
+		touchableBodies[4] = torso;
+	}
+
+	public void loosenLimb(Body touchedBody) {
+		RevoluteJoint joint;
+		if (touchedBody == lHand) {
+			joint = (RevoluteJoint) lShoulder;
+			joint.setMaxMotorTorque(LOOSE_TORQUE);
+			joint = (RevoluteJoint) lElbow;
+			joint.setMaxMotorTorque(LOOSE_TORQUE);
+		}
+		if (touchedBody == rHand) {
+			joint = (RevoluteJoint) rShoulder;
+			joint.setMaxMotorTorque(LOOSE_TORQUE);
+			joint = (RevoluteJoint) rElbow;
+			joint.setMaxMotorTorque(LOOSE_TORQUE);
+		}
+		if (touchedBody == lFoot) {
+			joint = (RevoluteJoint) lHip;
+			joint.setMaxMotorTorque(LOOSE_TORQUE);
+			joint = (RevoluteJoint) lKnee;
+			joint.setMaxMotorTorque(LOOSE_TORQUE);
+		}
+		if (touchedBody == rFoot) {
+			joint = (RevoluteJoint) rHip;
+			joint.setMaxMotorTorque(LOOSE_TORQUE);
+			joint = (RevoluteJoint) rKnee;
+			joint.setMaxMotorTorque(LOOSE_TORQUE);
+		}
+	}
+
+	public void tightenLimb(Body touchedBody) {
+		RevoluteJoint joint;
+		if (touchedBody == lHand) {
+			joint = (RevoluteJoint) lShoulder;
+			joint.setMaxMotorTorque(TIGHT_TORQUE);
+			joint = (RevoluteJoint) lElbow;
+			joint.setMaxMotorTorque(TIGHT_TORQUE);
+		}
+		if (touchedBody == rHand) {
+			joint = (RevoluteJoint) rShoulder;
+			joint.setMaxMotorTorque(TIGHT_TORQUE);
+			joint = (RevoluteJoint) rElbow;
+			joint.setMaxMotorTorque(TIGHT_TORQUE);
+		}
+		if (touchedBody == lFoot) {
+			joint = (RevoluteJoint) lHip;
+			joint.setMaxMotorTorque(TIGHT_TORQUE);
+			joint = (RevoluteJoint) lKnee;
+			joint.setMaxMotorTorque(TIGHT_TORQUE);
+		}
+		if (touchedBody == rFoot) {
+			joint = (RevoluteJoint) rHip;
+			joint.setMaxMotorTorque(TIGHT_TORQUE);
+			joint = (RevoluteJoint) rKnee;
+			joint.setMaxMotorTorque(TIGHT_TORQUE);
+		}
 	}
 
 	public void toggleClimbing() {
@@ -521,11 +617,60 @@ public class PhysicalPlayer {
 			joint.setMaxMotorTorque(lowerTorque);
 		}
 	}
+
 	public Body[] getTouchableBodies() {
 		return touchableBodies;
 	}
 
 	public Body getTorso() {
 		return torso;
+	}
+
+	public void checkFeetAngle() {
+		if (lFoot.getUserData() != null) {
+			if (lFoot.getAngle() < -1 * Math.PI / 2f || lFoot.getAngle() > Math.PI / 2f) {
+				simulator.removeFixation(lFoot);
+				loosenLimb(lFoot);
+			}
+		}
+		if (rFoot.getUserData() != null) {
+			if (rFoot.getAngle() < -1 * Math.PI / 2f || rFoot.getAngle() > Math.PI / 2f) {
+				simulator.removeFixation(rFoot);
+				loosenLimb(rFoot);
+			}
+		}
+	}
+
+	public void enableGravity(Body body) {
+		System.out.println("enabling gravity for " + body);
+		changeGravity(body, 1);
+	}
+
+	public void disableGravity(Body body) {
+		System.out.println("disabling gravity for " + body);
+		changeGravity(body, 0);
+	}
+
+	private void changeGravity(Body body, float gravity) {
+		if (body == lHand) {
+			luArm.setGravityScale(gravity);
+			llArm.setGravityScale(gravity);
+			lHand.setGravityScale(gravity);
+		}
+		if (body == rHand) {
+			ruArm.setGravityScale(gravity);
+			rlArm.setGravityScale(gravity);
+			rHand.setGravityScale(gravity);
+		}
+		if (body == lFoot) {
+			luLeg.setGravityScale(gravity);
+			llLeg.setGravityScale(gravity);
+			lFoot.setGravityScale(gravity);
+		}
+		if (body == rFoot) {
+			ruLeg.setGravityScale(gravity);
+			rlLeg.setGravityScale(gravity);
+			rFoot.setGravityScale(gravity);
+		}
 	}
 }
