@@ -1,27 +1,23 @@
 package net.node23.climbr;
 
-import physics.WorldSimulator;
 import net.node23.climbr.model.Hold;
 import net.node23.climbr.model.World;
+import physics.Simulator;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.utils.TimeUtils;
 
-public class WorldController implements InputProcessor {
+public class Controller implements InputProcessor {
 
 	private World world;
-	private WorldSimulator simulator;
+	private Simulator simulator;
 	private Pixmap handholds;
 	private Pixmap footholds;
 	private int height;
-	private int width;
-	Body touchedBody;
-	private long startTime;
 
-	public WorldController(World world, WorldSimulator simulator) {
+	public Controller(World world, Simulator simulator) {
 		this.world = world;
 		this.simulator = simulator;
 		handholds = new Pixmap(Gdx.files.internal(world.getHandholdsMap()));
@@ -29,15 +25,15 @@ public class WorldController implements InputProcessor {
 		Gdx.input.setInputProcessor(this);
 	}
 
-	public int getHandholdQuality(int x, int y) {
+	public float getHandholdQuality(int x, int y) {
 		return getHoldQuality(x, y, Hold.Type.HANDS);
 	}
 
-	public int getFootholdQuality(int x, int y) {
+	public float getFootholdQuality(int x, int y) {
 		return getHoldQuality(x, y, Hold.Type.FEET);
 	}
 
-	public int getHoldQuality(int x, int y, Hold.Type type) {
+	public float getHoldQuality(int x, int y, Hold.Type type) {
 		y = height - y;
 		for (Hold hold : world.getHolds()) {
 			if (hold.getX() <= x && x <= hold.getX() + Hold.SIZE
@@ -48,24 +44,21 @@ public class WorldController implements InputProcessor {
 		return 0;
 	}
 
-	private int getHoldQuality(Hold hold, int x, int y, Hold.Type type) {
-		int dX = x - hold.getX();
-		int dY = y - hold.getY();
-		// FIXME: Assuming handholds and footholds pixmaps are same size
-		int pX = hold.getIndex() * Hold.SIZE % handholds.getWidth() + dX;
+	private float getHoldQuality(Hold hold, int x, int y, Hold.Type type) {
+		// TODO: assumes hands and feet heightmaps are same size
+		int pX = hold.getIndex() * Hold.SIZE % handholds.getWidth() + x - hold.getX();
 		int pY = hold.getIndex() * Hold.SIZE / handholds.getWidth() * Hold.SIZE
-				+ Hold.SIZE - dY;
-
+				+ Hold.SIZE - (y - hold.getY());
+		int rgbaa = 0;
 		if (type == Hold.Type.HANDS) {
-			return handholds.getPixel(pX, pY);
+			rgbaa = handholds.getPixel(pX, pY);
 		} else if (type == Hold.Type.FEET) {
-			return footholds.getPixel(pX, pY);
+			rgbaa = footholds.getPixel(pX, pY);
 		}
-		return 0;
+		return (((rgbaa & 0xff000000) >>> 24) + ((rgbaa & 0x00ff0000) >>> 16) + ((rgbaa & 0x0000ff00) >>> 8)) / (3 * 255f);
 	}
 
 	public void setSize(int width, int height) {
-		this.width = width;
 		this.height = height;
 	}
 
@@ -90,22 +83,29 @@ public class WorldController implements InputProcessor {
 		if (character == 'g') {
 			simulator.toggleGravity();
 		}
+		if (character == 'x') {
+			simulator.removeAllFixations();
+		}
 		return false;
 	}
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		screenY = height - screenY;
-
+		float smallestDistance = 0.1f;
+		Body closestBody = null;
 		for (Body body : simulator.getPlayer().getTouchableBodies()) {
-			float dX = Math.abs(screenX / (float) WorldSimulator.PPU
+			float dX = Math.abs(screenX / (float) Simulator.PPU
 					- body.getPosition().x);
-			float dY = Math.abs(screenY / (float) WorldSimulator.PPU
+			float dY = Math.abs(screenY / (float) Simulator.PPU
 					- body.getPosition().y);
-			if (dX * dX + dY * dY < body.getFixtureList().get(0).getShape()
-					.getRadius()) {
-				simulator.touchBody(body, screenX, screenY, button);
+			if (dX * dX + dY * dY < smallestDistance) {
+				smallestDistance = dX * dX + dY * dY;
+				closestBody = body;
 			}
+		}
+		if (closestBody != null) {
+			simulator.touchBody(closestBody, screenX, screenY, button);
 		}
 		return false;
 	}
@@ -122,10 +122,6 @@ public class WorldController implements InputProcessor {
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
 		if (button == 0) {
 			simulator.untouchBody();
-			if (TimeUtils.millis() - startTime < 500) {
-				simulator.removeAllFixations();
-			}
-			startTime = TimeUtils.millis();
 		} else if (button == 1) {
 			simulator.removeFixation();
 		}

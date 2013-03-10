@@ -1,6 +1,6 @@
 package net.node23.climbr;
 
-import physics.WorldSimulator;
+import physics.Simulator;
 import net.node23.climbr.model.Hold;
 import net.node23.climbr.model.World;
 
@@ -16,10 +16,10 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.utils.Array;
 
-public class WorldRenderer {
+public class Renderer {
 
 	private World world;
-	WorldSimulator simulator;
+	Simulator simulator;
 	private boolean debug;
 	ShapeRenderer debugRenderer;
 	Box2DDebugRenderer box2dRenderer;
@@ -28,7 +28,7 @@ public class WorldRenderer {
 	Array<Sprite> holds = new Array<Sprite>();
 	Matrix4 projectionMatrix;
 
-	public WorldRenderer(World world, WorldSimulator simulator, boolean debug) {
+	public Renderer(World world, Simulator simulator, boolean debug) {
 		// Gdx.graphics.setContinuousRendering(false);
 		this.world = world;
 		this.simulator = simulator;
@@ -37,8 +37,8 @@ public class WorldRenderer {
 		box2dRenderer = new Box2DDebugRenderer();
 		spriteBatch = new SpriteBatch();
 		projectionMatrix = spriteBatch.getProjectionMatrix().cpy();
-		projectionMatrix.scale(WorldSimulator.PPU, WorldSimulator.PPU,
-				WorldSimulator.PPU);
+		projectionMatrix.scale(Simulator.PPU, Simulator.PPU,
+				Simulator.PPU);
 		loadTextures();
 	}
 

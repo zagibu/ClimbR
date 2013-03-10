@@ -1,6 +1,6 @@
 package net.node23.climbr;
 
-import physics.WorldSimulator;
+import physics.Simulator;
 import net.node23.climbr.model.World;
 
 import com.badlogic.gdx.Gdx;
@@ -8,10 +8,11 @@ import com.badlogic.gdx.Screen;
 
 public class GameScreen implements Screen {
 
+	// TODO: doesn't really do anything with the world
 	private World world;
-	private WorldRenderer renderer;
-	private WorldController controller;
-	private WorldSimulator simulator;
+	private Renderer renderer;
+	private Controller controller;
+	private Simulator simulator;
 
 	public GameScreen(World world) {
 		super();
@@ -21,7 +22,6 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
-		// controller.update(delta);
 		simulator.update();
 		renderer.render();
 	}
@@ -34,10 +34,11 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void show() {
-		simulator = new WorldSimulator();
-		renderer = new WorldRenderer(world, simulator, true);
+		// TODO: should they really be created here?
+		simulator = new Simulator();
+		renderer = new Renderer(world, simulator, true);
 		renderer.setSize(480, 800);
-		controller = new WorldController(world, simulator);
+		controller = new Controller(world, simulator);
 		controller.setSize(480, 800);
 	}
 
@@ -48,20 +49,14 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void pause() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void resume() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-
 	}
 
 }

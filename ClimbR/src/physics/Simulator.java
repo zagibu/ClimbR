@@ -9,7 +9,7 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 
-public class WorldSimulator {
+public class Simulator {
 
 	public static float WIDTH = 3;
 	public static float HEIGHT = 5;
@@ -25,7 +25,7 @@ public class WorldSimulator {
 	private PhysicalPlayer player;
 	private int numberOfHolds = 0;
 
-	public WorldSimulator() {
+	public Simulator() {
 		simulation = new World(gravity, true);
 
 		// Ground
@@ -47,6 +47,7 @@ public class WorldSimulator {
 
 	public void update() {
 		if (touchedBody != null) {
+			// TODO: hard to understand
 			scale = gravity.y / 2f;
 			if (scale < 0) {
 				scale *= -1f;
@@ -65,8 +66,23 @@ public class WorldSimulator {
 				touchedBody.setLinearVelocity(velocity.nor().mul(scale));
 			}
 		}
-		player.checkFeetAngle();
+		checkFeetAngle();
 		simulation.step(1 / 60f, 6, 2);
+	}
+
+	public void checkFeetAngle() {
+		if (player.getLeftFoot().getUserData() != null) {
+			if (player.getLeftFoot().getAngle() < -1 * Math.PI / 2f || player.getLeftFoot().getAngle() > Math.PI / 2f) {
+				removeFixation(player.getLeftFoot());
+				player.loosenLimb(player.getLeftFoot());
+			}
+		}
+		if (player.getRightFoot().getUserData() != null) {
+			if (player.getRightFoot().getAngle() < -1 * Math.PI / 2f || player.getRightFoot().getAngle() > Math.PI / 2f) {
+				removeFixation(player.getRightFoot());
+				player.loosenLimb(player.getRightFoot());
+			}
+		}
 	}
 
 	public void touchBody(Body body, int screenX, int screenY, int button) {
@@ -74,7 +90,7 @@ public class WorldSimulator {
 		removeFixation(touchedBody);
 		player.loosenLimb(body);
 		if (button == 0) {
-			player.disableGravity(body);
+			disableGravity(body);
 		}
 		updateTouch(screenX, screenY);
 	}
@@ -86,7 +102,7 @@ public class WorldSimulator {
 				createFixation(touchedBody);
 				player.tightenLimb(touchedBody);
 			}
-			player.enableGravity(touchedBody);
+			enableGravity(touchedBody);
 			touchedBody = null;
 		}
 	}
@@ -133,6 +149,39 @@ public class WorldSimulator {
 		jointDef.maxMotorTorque = 2f;
 		body.setUserData(simulation.createJoint(jointDef));
 		numberOfHolds++;
+	}
+
+	public void enableGravity(Body body) {
+		System.out.println("enabling gravity for " + body);
+		changeGravity(body, 1);
+	}
+
+	public void disableGravity(Body body) {
+		System.out.println("disabling gravity for " + body);
+		changeGravity(body, 0);
+	}
+
+	private void changeGravity(Body body, float gravity) {
+		if (body == player.getLeftHand()) {
+			player.getLeftUpperArm().setGravityScale(gravity);
+			player.getLeftLowerArm().setGravityScale(gravity);
+			player.getLeftHand().setGravityScale(gravity);
+		}
+		if (body == player.getRightHand()) {
+			player.getRightUpperArm().setGravityScale(gravity);
+			player.getRightLowerArm().setGravityScale(gravity);
+			player.getRightHand().setGravityScale(gravity);
+		}
+		if (body == player.getLeftFoot()) {
+			player.getLeftUpperLeg().setGravityScale(gravity);
+			player.getLeftLowerLeg().setGravityScale(gravity);
+			player.getLeftFoot().setGravityScale(gravity);
+		}
+		if (body == player.getRightFoot()) {
+			player.getRightUpperLeg().setGravityScale(gravity);
+			player.getRightLowerLeg().setGravityScale(gravity);
+			player.getRightFoot().setGravityScale(gravity);
+		}
 	}
 
 	public void decreaseGravity() {
